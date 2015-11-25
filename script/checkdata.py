@@ -15,6 +15,6 @@ def check(path,fnum):
     print path,suc
 
 print "check train..."
-check("../out/train"+VERSION+".csv",28)
+check("../out/train"+VERSION+".csv",31)
 print "check test..."
-check("../out/test"+VERSION+".csv",24)
+check("../out/test"+VERSION+".csv",27)

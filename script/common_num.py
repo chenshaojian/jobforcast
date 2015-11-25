@@ -40,10 +40,14 @@ def upper_lower_relation(lname,rname):
     else: return 2
 
 def format_position(positionstr):
-    if positionstr is None: return 0
+    poslevel=0
+    if positionstr is None: return poslevel,0
     positionstr=positionstr.replace(" ","")
-    if positionstr in position_map: return position_map[positionstr]
-    return 0
+    if positionstr in position_map:
+        if "经理" in positionstr: poslevel=1
+        elif "总监" in positionstr: poslevel=2
+        return poslevel,position_map[positionstr]
+    return poslevel,0
 
 def date_diff(sdate,edate):
     try:
