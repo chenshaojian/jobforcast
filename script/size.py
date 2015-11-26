@@ -8,6 +8,11 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.cross_validation import train_test_split
 from sklearn import preprocessing
 
+# 1.0.519155910674
+# 2.0.39233763573 remove posset,indusset,descendsize
+# 3.0.40340094243 add first,last,next industry
+# 4.0.40544970293 add first-last,first-next indus,size,salary,pos,poslevel,firstposlevel
+
 # handle train data
 x,ysize,x_train,x_valid,x_test,test_id=[],[],[],[],[],[]
 ftrainsize,ftestsize=open("../out/train_size_"+VERSION+".csv"),open("../out/test_size_"+VERSION+".csv")

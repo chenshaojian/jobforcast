@@ -22,11 +22,12 @@ def make_feat(inpath,outdegree,outsize,outsalary,outposition,isTrain=True):
     fin,fdgree,fsize,fsalary,fposition=open(inpath),open(outdegree,"w"),open(outsize,"w"),open(outsalary,"w"),open(outposition,"w")
 
     # feature title
-    common_title= "id,major,gender,age,workage,worknum,beforeworktime,indusnum,posnum,poslevelnum,lastworktime,nextworktime"
-    degree_title=common_title+",firstsize,firstsalary,avesize,avesalary,aveworktime,maxposlevel"
-    size_title=common_title+",firstsize,lastsize,nextsize,lastposition,nextposition,descendsize"
-    salary_title=common_title+",firstsalary,lastsalary,nextsalary,lastposition,nextposition,descendsalary"
-    position_title=common_title+",maxposlevel,lastsize,nextsize,lastsalary,nextsalary,lastposlevel,nextposition,lastposlevel,nextposlevel,descendposlevel"
+    common_title= "id,major,gender,age,workage,worknum,beforeworktime,poslevelnum,lastworktime,nextworktime," \
+                  "firstindus,lastdus,nextdus,flindus,fnindus,flsize,fnsize,flsalary,fnsalary,flpos,fnpos,flposlevel,fnposlevel,firstposlevel"
+    degree_title=common_title+",firstsize,firstsalary,avesize,avesalary,aveworktime,firstposition"
+    size_title=common_title+",firstsize,lastsize,nextsize,lastposition,nextposition"
+    salary_title=common_title+",firstsalary,lastsalary,nextsalary,lastposition,nextposition"
+    position_title=common_title+",lastsize,nextsize,lastsalary,nextsalary,lastposition,nextposition,lastposlevel,nextposlevel"
     if isTrain:
         degree_title+=",ydegree"
         size_title+=",ysize"
@@ -47,10 +48,13 @@ def make_feat(inpath,outdegree,outsize,outsalary,outposition,isTrain=True):
 
         # format every work experience
         bworktime,tworktime,lastworktime,nextworktime=0,0,0,0
-        indusset,posset,poslevelset=set(),set(),set()
+        poslevelset=set()
         tsize,tsalary=0,0
+        firstposition,lastposition,nextposition=0,0,0
+        firstposlevel,lastposlevel,nextposlevel=0,0,0
+        firstindus,lastdus,nextdus=0,0,0
         maxposlevel,lastposlevel,nextposlevel=0,0,0
-        descendsize,descendsalary,descendposlevel=0,0,0
+        flindus,fnindus,flsize,fnsize,flsalary,fnsalary,flpos,fnpos,flposlevel,fnposlevel=0,0,0,0,0,0,0,0,0,0
 
         for i in xrange(wn):
             w=jsonobj["workExperienceList"][i]
@@ -59,40 +63,49 @@ def make_feat(inpath,outdegree,outsize,outsalary,outposition,isTrain=True):
 
             # position name
             poslevel,position_name=format_position(w["position_name"])
-            posset.add(position_name)
             poslevelset.add(poslevel)
-            maxposlevel=max(maxposlevel,poslevel)
             if i==0:
                 nextposition=position_name
-                nextposlevel=position_name
+                nextposlevel=poslevel
             if i==2:
                 lastposition=position_name
-                lastposlevel=position_name
-            if i>1 and jsonobj["workExperienceList"][i-1]:
-                pposlevel,_=format_position(jsonobj["workExperienceList"][i-1]["position_name"])
-                if poslevel<pposlevel: descendposlevel=1
+                lastposlevel=poslevel
+            if i==wn-1:
+                firstposition=position_name
+                if firstposition==lastposition: flpos=1
+                if firstposition==nextposition: fnpos=1
+                firstposlevel=poslevel
+                if firstposlevel==lastposlevel: flposlevel=1
+                if firstposlevel==nextposlevel: fnposlevel=1
 
             # industry
             industry_name=format_industry(w["industry"])
-            indusset.add(industry_name)
+            if i==wn-1:
+                firstindus=industry_name
+                if firstindus==lastdus: flindus=1
+                if firstindus==nextdus: fnindus=1
+            if i==2: lastdus=industry_name
+            if i==0: nextdus=industry_name
 
             # size
             if i==0: nextsize=int(w["size"])
             if i==2: lastsize=int(w["size"])
-            if i==wn-1: firstsize=int(w["size"])
+            if i==wn-1:
+                firstsize=int(w["size"])
+                if firstsize==lastsize: flsize=1
+                if firstsize==nextsize: fnsize=1
             if i>1:
                 tsize+=int(w["size"])
-                if jsonobj["workExperienceList"][i-1] and int(w["size"])<int(jsonobj["workExperienceList"][i-1]["size"]):
-                    descendsize=1
 
             # salary
             if i==0: nextsalary=int(w["salary"])
             if i==2: lastsalary=int(w["salary"])
-            if i==wn-1: firstsalary=int(w["salary"])
+            if i==wn-1:
+                firstsalary=int(w["salary"])
+                if firstsalary==lastsalary: flsalary=1
+                if firstsalary==nextsalary: fnsalary=1
             if i>1:
                 tsalary+=int(w["salary"])
-                if jsonobj["workExperienceList"][i-1] and int(w["salary"])<int(jsonobj["workExperienceList"][i-1]["salary"]):
-                    descendsalary=1
 
             # worktime
             # about duration
@@ -119,16 +132,14 @@ def make_feat(inpath,outdegree,outsize,outsalary,outposition,isTrain=True):
         if isTrain and (age==100 or age-tworktime/12>30 or age-tworktime/12<16): continue
 
         # make other feature
-        salary_title=common_title+",firstsalary,lastsalary,nextsalary,lastposition,nextposition,descendsalary"
-        position_title=common_title+",maxposlevel,lastposlevel,nextposition,lastposlevel,nextposlevel,descendposlevel"
-
-        commonlist=[age-tworktime/12,wn,bworktime,len(indusset),len(posset),len(poslevelset),lastworktime,nextworktime]
-        degreelist=outlist+commonlist+[firstsize,firstsalary,round(float(tsize)/(wn-2)),
-                                       round(float(tsalary)/(wn-2)),round(float(bworktime)/(wn-2)),maxposlevel]
-        sizelist=outlist+commonlist+[firstsize,lastsize,nextsize,lastposition,nextposition,descendsize]
-        salarylist=outlist+commonlist+[firstsalary,lastsalary,nextsalary,lastposition,nextposition,descendsalary]
-        positionlist=outlist+commonlist+[maxposlevel,lastsize,nextsize,lastsalary,nextsalary,lastposition,
-                                         nextposition,lastposlevel,nextposlevel,descendposlevel]
+        commonlist=[age-tworktime/12,wn,bworktime,len(poslevelset),lastworktime,nextworktime,firstindus,lastdus,nextdus,
+                    flindus,fnindus,flsize,fnsize,flsalary,fnsalary,flpos,fnpos,flposlevel,fnposlevel,firstposlevel]
+        degreelist=outlist+commonlist+[firstsize,firstsalary,round(float(tsize)/(wn-2)),round(float(tsalary)/(wn-2)),
+                                       round(float(bworktime)/(wn-2)),firstposition]
+        sizelist=outlist+commonlist+[firstsize,lastsize,nextsize,lastposition,nextposition]
+        salarylist=outlist+commonlist+[firstsalary,lastsalary,nextsalary,lastposition,nextposition]
+        positionlist=outlist+commonlist+[lastsize,nextsize,lastsalary,nextsalary,lastposition,
+                                         nextposition,lastposlevel,nextposlevel]
 
         # if train, print label column
         if isTrain:
