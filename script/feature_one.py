@@ -23,11 +23,13 @@ def make_feat(inpath,outdegree,outsize,outsalary,outposition,isTrain=True):
 
     # feature title
     common_title= "id,major,gender,age,workage,worknum,beforeworktime,poslevelnum,lastworktime,nextworktime," \
-                  "firstindus,lastdus,nextdus,flindus,fnindus,firstposlevel"
-    degree_title=common_title+",firstsize,firstsalary,avesize,avesalary,aveworktime,firstposition"
-    size_title=common_title+",firstsize,lastsize,nextsize,flsize,fnsize"
-    salary_title=common_title+",firstsalary,lastsalary,nextsalary,flsalary,fnsalary"
-    position_title=common_title+",lastposition,nextposition,lastposlevel,nextposlevel,flpos,fnpos,flposlevel,fnposlevel"
+                  "firstindus,lastdus,nextdus,flindus,fnindus,flsize,fnsize,flsalary,fnsalary,flpos,fnpos,flposlevel,fnposlevel," \
+                  "firstposlevel,firstsize,firstsalary,avesize,avesalary,aveworktime,firstposition," \
+                  "lastsize,nextsize,lastposition,nextposition,lastsalary,nextsalary,lastposlevel,nextposlevel"
+    degree_title=common_title
+    size_title=common_title
+    salary_title=common_title
+    position_title=common_title
     if isTrain:
         degree_title+=",ydegree"
         size_title+=",ysize"
@@ -133,12 +135,14 @@ def make_feat(inpath,outdegree,outsize,outsalary,outposition,isTrain=True):
 
         # make other feature
         commonlist=[age-tworktime/12,wn,bworktime,len(poslevelset),lastworktime,nextworktime,firstindus,lastdus,nextdus,
-                    flindus,fnindus,firstposlevel]
-        degreelist=outlist+commonlist+[firstsize,firstsalary,round(float(tsize)/(wn-2)),round(float(tsalary)/(wn-2)),
-                                       round(float(bworktime)/(wn-2)),firstposition]
-        sizelist=outlist+commonlist+[firstsize,lastsize,nextsize,flsize,fnsize]
-        salarylist=outlist+commonlist+[firstsalary,lastsalary,nextsalary,flsalary,fnsalary]
-        positionlist=outlist+commonlist+[lastposition,nextposition,lastposlevel,nextposlevel,flpos,fnpos,flposlevel,fnposlevel]
+                    flindus,fnindus,flsize,fnsize,flsalary,fnsalary,flpos,fnpos,flposlevel,fnposlevel,firstposlevel,
+                    firstsize,firstsalary,round(float(tsize)/(wn-2)),round(float(tsalary)/(wn-2)),
+                    round(float(bworktime)/(wn-2)),firstposition,lastsize,nextsize,lastposition,nextposition,lastsalary,
+                    nextsalary,lastposlevel,nextposlevel]
+        degreelist=outlist+commonlist
+        sizelist=outlist+commonlist
+        salarylist=outlist+commonlist
+        positionlist=outlist+commonlist
 
         # if train, print label column
         if isTrain:

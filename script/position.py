@@ -12,6 +12,8 @@ from sklearn import preprocessing
 # 2.0.565662774022 remove posset,indusset,descendposlevel
 # 3.0.576213890596 add first,last,next industry
 # 4.0.578774841221 add first-last,first-next indus,size,salary,pos,poslevel,firstposlevel
+# 5.0.575804138496 merge to one feature list
+# 6.0.568018848597
 
 # handle train data
 x,yposition,x_train,x_valid,x_test,test_id=[],[],[],[],[],[]
