@@ -22,12 +22,14 @@ def make_feat(inpath,outdegree,outsize,outsalary,outposition,isTrain=True):
     fin,fdgree,fsize,fsalary,fposition=open(inpath),open(outdegree,"w"),open(outsize,"w"),open(outsalary,"w"),open(outposition,"w")
 
     # feature title
-    common_title= "id,major,gender,age,workage,worknum,beforeworktime,poslevelnum,lastworktime,nextworktime," \
-                  "firstindus,lastdus,nextdus,flindus,fnindus,firstposlevel"
+    common_title="id,major,gender,age,workage,worknum,beforeworktime,firstindus," \
+                 "flindus,fnindus,firstposlevel"
+    ws_common_title=",lastworktime,nextworktime,lastdus,nextdus,poslevelnum"
     degree_title=common_title+",firstsize,firstsalary,avesize,avesalary,aveworktime,firstposition"
-    size_title=common_title+",firstsize,lastsize,nextsize,flsize,fnsize"
-    salary_title=common_title+",firstsalary,lastsalary,nextsalary,flsalary,fnsalary"
-    position_title=common_title+",lastposition,nextposition,lastposlevel,nextposlevel,flpos,fnpos,flposlevel,fnposlevel"
+    size_title=common_title+ws_common_title+",firstsize,lastsize,nextsize,flsize,fnsize,desclnsize"
+    salary_title=common_title+ws_common_title+",firstsalary,lastsalary,nextsalary,flsalary,fnsalary,desclnsalary"
+    position_title=common_title+ws_common_title+",lastposition,nextposition,lastposlevel,nextposlevel," \
+                                                "flpos,fnpos,flposlevel,fnposlevel,desclnposlevel"
     if isTrain:
         degree_title+=",ydegree"
         size_title+=",ysize"
@@ -41,7 +43,10 @@ def make_feat(inpath,outdegree,outsize,outsalary,outposition,isTrain=True):
 
     # make feature sample by sample
     for line in fin:
-        jsonobj=json.loads(line)
+        try:
+            jsonobj=json.loads(line)
+        except:
+            print line
         wn=len(jsonobj["workExperienceList"])
         # if train, but work experience less than 3
         if isTrain and wn<3: continue
@@ -55,6 +60,7 @@ def make_feat(inpath,outdegree,outsize,outsalary,outposition,isTrain=True):
         firstindus,lastdus,nextdus=0,0,0
         maxposlevel,lastposlevel,nextposlevel=0,0,0
         flindus,fnindus,flsize,fnsize,flsalary,fnsalary,flpos,fnpos,flposlevel,fnposlevel=0,0,0,0,0,0,0,0,0,0
+        desclnsize,desclnsalary,desclnposlevel=0,0,0
 
         for i in xrange(wn):
             w=jsonobj["workExperienceList"][i]
@@ -70,6 +76,7 @@ def make_feat(inpath,outdegree,outsize,outsalary,outposition,isTrain=True):
             if i==2:
                 lastposition=position_name
                 lastposlevel=poslevel
+                if nextposlevel<lastposlevel: desclnposlevel=1
             if i==wn-1:
                 firstposition=position_name
                 if firstposition==lastposition: flpos=1
@@ -89,7 +96,9 @@ def make_feat(inpath,outdegree,outsize,outsalary,outposition,isTrain=True):
 
             # size
             if i==0: nextsize=int(w["size"])
-            if i==2: lastsize=int(w["size"])
+            if i==2:
+                lastsize=int(w["size"])
+                if nextsize<lastsize: desclnsize=1
             if i==wn-1:
                 firstsize=int(w["size"])
                 if firstsize==lastsize: flsize=1
@@ -99,7 +108,9 @@ def make_feat(inpath,outdegree,outsize,outsalary,outposition,isTrain=True):
 
             # salary
             if i==0: nextsalary=int(w["salary"])
-            if i==2: lastsalary=int(w["salary"])
+            if i==2:
+                lastsalary=int(w["salary"])
+                if nextsalary<lastsalary: desclnsalary=1
             if i==wn-1:
                 firstsalary=int(w["salary"])
                 if firstsalary==lastsalary: flsalary=1
@@ -132,13 +143,14 @@ def make_feat(inpath,outdegree,outsize,outsalary,outposition,isTrain=True):
         if isTrain and (age==100 or age-tworktime/12>30 or age-tworktime/12<16): continue
 
         # make other feature
-        commonlist=[age-tworktime/12,wn,bworktime,len(poslevelset),lastworktime,nextworktime,firstindus,lastdus,nextdus,
-                    flindus,fnindus,firstposlevel]
-        degreelist=outlist+commonlist+[firstsize,firstsalary,round(float(tsize)/(wn-2)),round(float(tsalary)/(wn-2)),
-                                       round(float(bworktime)/(wn-2)),firstposition]
-        sizelist=outlist+commonlist+[firstsize,lastsize,nextsize,flsize,fnsize]
-        salarylist=outlist+commonlist+[firstsalary,lastsalary,nextsalary,flsalary,fnsalary]
-        positionlist=outlist+commonlist+[lastposition,nextposition,lastposlevel,nextposlevel,flpos,fnpos,flposlevel,fnposlevel]
+        commonlist=[age-tworktime/12,wn,bworktime,firstindus,flindus,fnindus,firstposlevel]
+        ws_commonlist=[lastworktime,nextworktime,lastdus,nextdus,len(poslevelset)]
+        degreelist=outlist+commonlist+[firstsize,firstsalary,round(float(tsize)/(wn-2)),
+                                                     round(float(tsalary)/(wn-2)),round(float(bworktime)/(wn-2)),firstposition]
+        sizelist=outlist+commonlist+ws_commonlist+[firstsize,lastsize,nextsize,flsize,fnsize,desclnsize]
+        salarylist=outlist+commonlist+ws_commonlist+[firstsalary,lastsalary,nextsalary,flsalary,fnsalary,desclnsalary]
+        positionlist=outlist+commonlist+ws_commonlist+[lastposition,nextposition,lastposlevel,nextposlevel,flpos,fnpos,
+                                         flposlevel,fnposlevel,desclnposlevel]
 
         # if train, print label column
         if isTrain:
