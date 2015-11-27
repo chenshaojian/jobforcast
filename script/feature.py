@@ -24,8 +24,12 @@ def make_feat(inpath,outdegree,outsize,outsalary,outposition,isTrain=True):
     # feature title
     common_title="id,major,gender,age,workage,worknum,beforeworktime,firstindus," \
                  "flindus,fnindus,firstposlevel"
-    ws_common_title=",lastworktime,nextworktime,lastdus,nextdus,poslevelnum"
-    degree_title=common_title+",firstsize,firstsalary,avesize,avesalary,aveworktime,firstposition"
+    ws_common_title=",lastworktime,nextworktime,lastdus,nextdus,poslevelnum," \
+                    "maxsize_salary,maxsize_poslevel,maxsize_position,maxsize_worktime," \
+                    "maxsalary_size,maxsalary_poslevel,maxsalary_position,maxsalary_worktime," \
+                    "maxposlevel_size,maxposlevel_salary,maxposlevel_position,maxposlevel_worktime," \
+                    "maxworktime_size,maxworktime_salary,maxworktime_poslevel,maxworktime_position"
+    degree_title=common_title+ws_common_title+",firstsize,firstsalary,avesize,avesalary,aveworktime,firstposition"
     size_title=common_title+ws_common_title+",firstsize,lastsize,nextsize,flsize,fnsize,desclnsize"
     salary_title=common_title+ws_common_title+",firstsalary,lastsalary,nextsalary,flsalary,fnsalary,desclnsalary"
     position_title=common_title+ws_common_title+",lastposition,nextposition,lastposlevel,nextposlevel," \
@@ -43,25 +47,26 @@ def make_feat(inpath,outdegree,outsize,outsalary,outposition,isTrain=True):
 
     # make feature sample by sample
     for line in fin:
-        try:
-            jsonobj=json.loads(line)
-        except:
-            print line
+        jsonobj=json.loads(line)
         wn=len(jsonobj["workExperienceList"])
         # if train, but work experience less than 3
         if isTrain and wn<3: continue
 
-        # format every work experience
-        bworktime,tworktime,lastworktime,nextworktime=0,0,0,0
-        poslevelset=set()
-        tsize,tsalary=0,0
-        firstposition,lastposition,nextposition=0,0,0
-        firstposlevel,lastposlevel,nextposlevel=0,0,0
-        firstindus,lastdus,nextdus=0,0,0
-        maxposlevel,lastposlevel,nextposlevel=0,0,0
-        flindus,fnindus,flsize,fnsize,flsalary,fnsalary,flpos,fnpos,flposlevel,fnposlevel=0,0,0,0,0,0,0,0,0,0
-        desclnsize,desclnsalary,desclnposlevel=0,0,0
+        # every feature variable definition
+        bworktime,tworktime,lastworktime,nextworktime=0,0,0,0   # time
+        poslevelset=set()   # poslevel set
+        tsize,tsalary=0,0   # total size, salary
+        firstposition,lastposition,nextposition=0,0,0   # position
+        firstposlevel,lastposlevel,nextposlevel=0,0,0   # poslevel
+        firstindus,lastdus,nextdus=0,0,0    # industry
+        flindus,fnindus,flsize,fnsize,flsalary,fnsalary,flpos,fnpos,flposlevel,fnposlevel=0,0,0,0,0,0,0,0,0,0   # diff
+        desclnsize,desclnsalary,desclnposlevel=0,0,0    # descend
+        maxsize,maxsize_salary,maxsize_poslevel,maxsize_position,maxsize_worktime=0,0,0,0,0
+        maxsalary,maxsalary_size,maxsalary_poslevel,maxsalary_position,maxsalary_worktime=0,0,0,0,0
+        maxposlevel,maxposlevel_size,maxposlevel_salary,maxposlevel_position,maxposlevel_worktime=0,0,0,0,0
+        maxworktime,maxworktime_size,maxworktime_salary,maxworktime_poslevel,maxworktime_position=0,0,0,0,0
 
+        # iterate every work experience
         for i in xrange(wn):
             w=jsonobj["workExperienceList"][i]
             # if test, skip column that to be predicted
@@ -95,28 +100,30 @@ def make_feat(inpath,outdegree,outsize,outsalary,outposition,isTrain=True):
             if i==0: nextdus=industry_name
 
             # size
-            if i==0: nextsize=int(w["size"])
+            size=int(w["size"])
+            if i==0: nextsize=size
             if i==2:
-                lastsize=int(w["size"])
+                lastsize=size
                 if nextsize<lastsize: desclnsize=1
             if i==wn-1:
-                firstsize=int(w["size"])
+                firstsize=size
                 if firstsize==lastsize: flsize=1
                 if firstsize==nextsize: fnsize=1
             if i>1:
                 tsize+=int(w["size"])
 
             # salary
-            if i==0: nextsalary=int(w["salary"])
+            salary=int(w["salary"])
+            if i==0: nextsalary=salary
             if i==2:
-                lastsalary=int(w["salary"])
+                lastsalary=salary
                 if nextsalary<lastsalary: desclnsalary=1
             if i==wn-1:
-                firstsalary=int(w["salary"])
+                firstsalary=salary
                 if firstsalary==lastsalary: flsalary=1
                 if firstsalary==nextsalary: fnsalary=1
             if i>1:
-                tsalary+=int(w["salary"])
+                tsalary+=salary
 
             # worktime
             # about duration
@@ -129,6 +136,38 @@ def make_feat(inpath,outdegree,outsize,outsalary,outposition,isTrain=True):
             if i>1: bworktime+=duration
             if i==2: lastworktime=duration
             tworktime+=duration
+
+            # joint feature
+            if i!=1 and poslevel>=maxposlevel:
+                maxposlevel=poslevel
+                maxposlevel_size=size
+                maxposlevel_salary=salary
+                maxposlevel_position=position_name
+                maxposlevel_worktime=duration
+            if i!=1 and size>=maxsize:
+                maxsize=size
+                maxsize_salary=salary
+                maxsize_poslevel=poslevel
+                maxsize_position=position_name
+                maxsize_worktime=duration
+            if i!=1 and salary>=maxsalary:
+                maxsalary=salary
+                maxsalary_size=size
+                maxsalary_poslevel=poslevel
+                maxsalary_position=position_name
+                maxsalary_worktime=duration
+            if i!=1 and poslevel>=maxposlevel:
+                maxposlevel=poslevel
+                maxposlevel_size=size
+                maxposlevel_salary=salary
+                maxposlevel_position=position_name
+                maxposlevel_worktime=duration
+            if i!=1 and duration>=maxworktime:
+                maxworktime=duration
+                maxworktime_size=size
+                maxworktime_salary=salary
+                maxworktime_poslevel=poslevel
+                maxworktime_position=position_name
 
             # about label
             if isTrain and i==1:
@@ -144,8 +183,12 @@ def make_feat(inpath,outdegree,outsize,outsalary,outposition,isTrain=True):
 
         # make other feature
         commonlist=[age-tworktime/12,wn,bworktime,firstindus,flindus,fnindus,firstposlevel]
-        ws_commonlist=[lastworktime,nextworktime,lastdus,nextdus,len(poslevelset)]
-        degreelist=outlist+commonlist+[firstsize,firstsalary,round(float(tsize)/(wn-2)),
+        ws_commonlist=[lastworktime,nextworktime,lastdus,nextdus,len(poslevelset),
+                       maxsize_salary,maxsize_poslevel,maxsize_position,maxsize_worktime,
+                       maxsalary_size,maxsalary_poslevel,maxsalary_position,maxsalary_worktime,
+                       maxposlevel_size,maxposlevel_salary,maxposlevel_position,maxposlevel_worktime,
+                       maxworktime_size,maxworktime_salary,maxworktime_poslevel,maxworktime_position]
+        degreelist=outlist+commonlist+ws_commonlist+[firstsize,firstsalary,round(float(tsize)/(wn-2)),
                                                      round(float(tsalary)/(wn-2)),round(float(bworktime)/(wn-2)),firstposition]
         sizelist=outlist+commonlist+ws_commonlist+[firstsize,lastsize,nextsize,flsize,fnsize,desclnsize]
         salarylist=outlist+commonlist+ws_commonlist+[firstsalary,lastsalary,nextsalary,flsalary,fnsalary,desclnsalary]
