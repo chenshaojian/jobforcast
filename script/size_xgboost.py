@@ -12,6 +12,7 @@ import numpy as np
 
 # 1.0.404322884655
 # 2.0.39377176808
+# 3.0.369289080107
 
 # handle train data
 x,ysize,x_train,x_valid,x_test,test_id=[],[],[],[],[],[]
@@ -50,7 +51,7 @@ param['silent']=1
 param['nthread']=4
 param['num_class']=8
 watchlist=[(xg_train,'train'),(xg_valid,'valid')]
-num_round=5
+num_round=1000
 
 # train
 print "start training...",len(x_train)
@@ -63,7 +64,7 @@ print size_ac
 
 # predict
 print "start build size model..."
-size_model=xgb.train(param, xg_train_online, num_round, watchlist);
+size_model=xgb.train(param, xg_train_online, num_round);
 
 print "start predicting..."
 foutsize=open("../out/result_size_"+VERSION+".csv","w")

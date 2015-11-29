@@ -50,7 +50,7 @@ param['silent']=1
 param['nthread']=4
 param['num_class']=33
 watchlist=[(xg_train,'train'),(xg_valid,'valid')]
-num_round=5
+num_round=1000
 
 # train
 print "start training...",len(x_train)
@@ -63,7 +63,7 @@ print position_ac
 
 # predict
 print "start build position model..."
-position_model=xgb.train(param, xg_train_online, num_round, watchlist);
+position_model=xgb.train(param, xg_train_online, num_round);
 
 print "start predicting..."
 foutposition=open("../out/result_position_"+VERSION+".csv","w")

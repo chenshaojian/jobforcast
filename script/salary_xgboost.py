@@ -12,6 +12,7 @@ import numpy as np
 
 # 1.0.590760090145
 # 2.0.582872362221
+# 3.0.571501741446
 
 # handle train data
 x,ysalary,x_train,x_valid,x_test,test_id=[],[],[],[],[],[]
@@ -50,7 +51,7 @@ param['silent']=1
 param['nthread']=4
 param['num_class']=7
 watchlist=[(xg_train,'train'),(xg_valid,'valid')]
-num_round=5
+num_round=1000
 
 # train
 print "start training...",len(x_train)
@@ -63,7 +64,7 @@ print salary_ac
 
 # predict
 print "start build salary model..."
-salary_model=xgb.train(param, xg_train_online, num_round, watchlist);
+salary_model=xgb.train(param, xg_train_online, num_round);
 
 print "start predicting..."
 foutsalary=open("../out/result_salary_"+VERSION+".csv","w")

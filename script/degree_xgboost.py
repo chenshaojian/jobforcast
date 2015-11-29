@@ -12,6 +12,7 @@ import numpy as np
 
 # 1.0.645666871543
 # 2.0.614730587994
+# 3.0.645974185618
 
 # handle train data
 x,ydegree,x_train,x_valid,x_test,test_id=[],[],[],[],[],[]
@@ -50,7 +51,7 @@ param['silent']=1
 param['nthread']=3
 param['num_class']=3
 watchlist=[(xg_train,'train'),(xg_valid,'valid')]
-num_round=5
+num_round=1000
 
 # train
 print "start training...",len(x_train)
@@ -63,7 +64,8 @@ print degree_ac
 
 # predict
 print "start build degree model..."
-degree_model=xgb.train(param, xg_train_online, num_round, watchlist);
+degree_model=xgb.train(param, xg_train_online, num_round);
+degree_model.save_model('degree.model')
 
 print "start predicting..."
 foutdegree=open("../out/result_degree_"+VERSION+".csv","w")
