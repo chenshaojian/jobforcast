@@ -65,7 +65,6 @@ print degree_ac
 # predict
 print "start build degree model..."
 degree_model=xgb.train(param, xg_train_online, num_round);
-degree_model.save_model('degree.model')
 
 print "start predicting..."
 foutdegree=open("../out/result_degree_"+VERSION+".csv","w")
