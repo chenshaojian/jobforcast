@@ -3,7 +3,7 @@ reload(sys)
 sys.setdefaultencoding('utf-8')
 sys.path.append(".")
 
-VERSION="12"
+VERSION="13"
 TREENUM=100
 TREEDEPTH=3
 LRATE=0.1

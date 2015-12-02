@@ -1,8 +1,23 @@
 # -*- coding:utf-8 -*-
 
+from common_chinese import *
+
 def format_age(agestr):
     if agestr=="未知": return 0
     return agestr if agestr[-1:]!="岁" else agestr[:-1]
+
+# id, major, gender, age
+def human_feat(jsonobj):
+    retval=[jsonobj["id"],format_major(jsonobj["major"])]
+    if jsonobj["gender"]=="女": retval.append(1)
+    else: retval.append(0)
+    try:
+        if jsonobj["age"][-1]=="岁": age=int(jsonobj["age"][:-1])
+        else: age=int(jsonobj["age"])
+    except:
+        age=100
+    retval.append(age)
+    return age,retval
 
 dept_cnt,dept_map=1,{}
 def format_dept(departstr):
@@ -39,14 +54,24 @@ def upper_lower_relation(lname,rname):
     if rname[-2:]==u"总监" and lname[-2:]==u"经理": return 1
     else: return 2
 
+otherposition=set()
 def format_position(positionstr):
+    global otherposition
     poslevel=0
     if positionstr is None: return poslevel,0
     positionstr=positionstr.replace(" ","")
     if positionstr in position_map:
-        if "经理" in positionstr: poslevel=1
-        elif "总监" in positionstr: poslevel=2
+        if "总经理" in positionstr or "总监" in positionstr: poslevel=2
+        elif "经理" in positionstr: poslevel=1
         return poslevel,position_map[positionstr]
+    elif "CEO" in positionstr or "厂长" == positionstr or "总经理" in positionstr or "总监" in positionstr or "总工" in positionstr\
+            or "合伙人" in positionstr or "总编" in positionstr or "校长" == positionstr: poslevel=2
+    elif "主管" in positionstr or "经理" in positionstr or "主任" in positionstr or "部长" in positionstr or "leader" in positionstr\
+            or "负责人" in positionstr or "副总" in positionstr or "组长" in positionstr or "科长" in positionstr\
+            or "店长" in positionstr or "领班" in positionstr or "干事" in positionstr or "课长" in positionstr\
+            or "副校长" in positionstr or "Manager" in positionstr or "研究员" in positionstr or "局长" in positionstr\
+            or "所长" in positionstr or "架构师" in positionstr: poslevel=1
+    otherposition.add(positionstr)
     return poslevel,0
 
 def date_diff(sdate,edate):

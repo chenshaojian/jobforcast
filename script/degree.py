@@ -13,7 +13,7 @@ from sklearn import preprocessing
 # 3.0.641979102643 add first,last,next industry
 # 4.0.646588813768 add first-last,first-next indus,size,salary,pos,poslevel,firstposlevel,firstposition
 # 5.0.662671583692 merge to one feature list
-# 6.0.645666871543
+# 6.0.646281499693 new feature
 
 # handle train data
 x,ydegree,x_train,x_valid,x_test,test_id=[],[],[],[],[],[]

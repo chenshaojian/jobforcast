@@ -13,6 +13,7 @@ import numpy as np
 # 1.0.645666871543
 # 2.0.614730587994
 # 3.0.645974185618
+# 4.0.635115754968 new feature
 
 # handle train data
 x,ydegree,x_train,x_valid,x_test,test_id=[],[],[],[],[],[]
