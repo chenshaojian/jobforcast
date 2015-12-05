@@ -83,7 +83,6 @@ def make_feat(inpath,outpath,isTrain=True):
         if isTrain and wn<3: continue
 
         bworktime,tworktime,lworktime,nworktime,maxposlevel,maxsalary,maxsalary_industry,maxsalary_position=0,0,0,0,0,0,0,0
-        industryset=set()
 
         # iterate every work experience
         for i in xrange(wn):
@@ -102,7 +101,6 @@ def make_feat(inpath,outpath,isTrain=True):
 
             # industry
             industry_name=format_industry(w["industry"])
-            industryset.add(industry_name)
 
             # size
             size=int(w["size"])
